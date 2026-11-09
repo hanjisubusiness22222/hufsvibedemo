@@ -1,0 +1,8 @@
+{
+  "name": "hufs-ta-mate-demo",
+  "version": "1.0.0",
+  "description": "2026 한국외대 AI 캠퍼스 바이브코딩 경진대회 - 대학원·학부 조교 업무 표준화 및 AI 인수인계 플랫폼 데모",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}

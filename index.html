@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HUFS TA-Mate | 한국외대 조교 행정 & AI 인수인계 포털</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hufs: {
+              navy: '#002D56',
+              dark: '#001A33',
+              gold: '#8D734A',
+              lightgold: '#FBF8F3',
+              blue: '#2563EB',
+              teal: '#0D9488'
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Pretendard', sans-serif; background-color: #F8FAFC; }
+    .diff-added { background-color: #DCFCE7; color: #166534; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+    .diff-masked { background-color: #FEF3C7; color: #92400E; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-hufs-navy selection:text-white min-h-screen flex flex-col">
+
+  <!-- 1. Top Quick Bar -->
+  <div class="bg-hufs-dark text-white px-4 py-2 text-xs border-b border-white/10">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded text-[11px]">2026 AI 캠퍼스 경진대회</span>
+        <span class="text-slate-300 font-medium hidden sm:inline">한국외대 × 네이버클라우드 | 조교 행정 표준화 & AI 인수인계 포털</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="runGuidedDemo()" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3 py-1 rounded-md text-xs flex items-center gap-1.5 transition shadow-xs">
+          <i data-lucide="play-circle" class="w-3.5 h-3.5"></i> 1분 핵심 시연
+        </button>
+        <button onclick="openFeedbackModal()" class="bg-white/10 hover:bg-white/20 text-slate-200 px-2.5 py-1 rounded-md text-xs transition">
+          의견 남기기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Header & Clean Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-15">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+          <div class="w-9 h-9 rounded-xl bg-hufs-navy flex items-center justify-center text-white font-black text-base shadow-xs">
+            H
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-base sm:text-lg text-hufs-navy tracking-tight">HUFS TA-Mate</span>
+              <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded border border-slate-200">데모</span>
+            </div>
+            <p class="text-[11px] text-slate-500 hidden sm:block">외대 조교 업무 가이드 & AI 인수인계</p>
+          </div>
+        </div>
+
+        <!-- Role / Persona Filter (Clean Tabs) -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+          <span class="px-2 text-slate-400 font-medium hidden md:inline">보기:</span>
+          <button id="pBtn-newTA" onclick="setRole('newTA')" class="px-2.5 py-1 rounded-md font-bold bg-hufs-navy text-white shadow-2xs transition">
+            신임 조교 (타교·타과)
+          </button>
+          <button id="pBtn-undergrad" onclick="setRole('undergrad')" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+            학부 행정조교
+          </button>
+          <button id="pBtn-prof" onclick="setRole('prof')" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+            신임 학부장
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Buttons -->
+      <nav class="flex items-center gap-1 overflow-x-auto -mb-px pt-1 pb-0.5">
+        <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-hufs-navy text-hufs-navy font-bold text-sm whitespace-nowrap transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 학사일정 대시보드
+        </button>
+        <button onclick="switchTab('manual')" id="tabBtn-manual" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm whitespace-nowrap transition">
+          <i data-lucide="book-open" class="w-4 h-4"></i> 표준 업무 매뉴얼
+        </button>
+        <button onclick="switchTab('transformer')" id="tabBtn-transformer" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm whitespace-nowrap transition">
+          <i data-lucide="sparkles" class="w-4 h-4 text-teal-600"></i> AI 문서 자동 변환
+          <span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">핵심</span>
+        </button>
+        <button onclick="switchTab('worklog')" id="tabBtn-worklog" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm whitespace-nowrap transition">
+          <i data-lucide="clipboard-check" class="w-4 h-4"></i> 공유 업무일지 & 인수인계
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Role Notification Alert -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 w-full">
+    <div id="roleAlertBox" class="bg-blue-50/70 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-blue-950">
+      <div class="flex items-center gap-2">
+        <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
+        <span id="roleAlertText"><strong>타교·타과 출신 신임 조교 모드:</strong> 외대 행정 절차와 학과 전공 특성이 매뉴얼에 자동 반영되어 전임자나 학부생에게 일일이 묻지 않아도 됩니다.</span>
+      </div>
+      <button onclick="switchTab('manual')" class="text-blue-700 font-bold hover:underline shrink-0 ml-2">가이드 보기 →</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full space-y-6">
+
+    <!-- ========================================================
+         TAB 1: DASHBOARD (외대 학사일정 연동)
+         ======================================================== -->
+    <section id="tab-dashboard" class="space-y-5">
+      <!-- 3 Simple KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">외대 학사일정 연동 (11월)</span>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="text-2xl font-extrabold text-slate-900">4건</span>
+            <span class="text-xs text-rose-600 font-bold">마감 임박 D-5</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">학위청구논문 보고 · 장학금 사정</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">담당자 변경 반려 주의</span>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="text-2xl font-extrabold text-rose-600">2건</span>
+            <span class="text-xs text-slate-600">서식 변경 반영됨</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">학사지원센터 최신 기준 자동 연동</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <span class="text-xs font-semibold text-slate-500">인수인계 자동 달성률</span>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="text-2xl font-extrabold text-hufs-navy" id="kpiRate">85%</span>
+            <span class="text-xs text-teal-600 font-bold">문서 누락 0건</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">공유 일지 24건 기반 자동 컴파일</p>
+        </div>
+      </div>
+
+      <!-- Main Layout: Tasks (Left 2 cols) & Notice/Contact (Right 1 col) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Action Tasks -->
+        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+              <i data-lucide="calendar" class="w-4 h-4 text-hufs-navy"></i> 이번 달 조교 필수 업무 (외대 학사일정 D-Day 매칭)
+            </h3>
+            <span class="text-[11px] text-slate-400">2026.11 기준</span>
+          </div>
+
+          <div class="divide-y divide-slate-100 text-xs">
+            <!-- Task 1 -->
+            <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div class="space-y-1.5 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-rose-600 text-white font-extrabold text-[11px]">D-5</span>
+                  <span class="font-bold text-slate-900 text-sm">2026-2학기 석·박사 학위청구논문 심사보고 및 심사비 기안</span>
+                  <span class="text-[10px] bg-blue-50 text-hufs-navy font-bold px-1.5 py-0.5 rounded">대학원</span>
+                </div>
+                <p class="text-slate-500 text-[11px]">마감일: 2026.11.10(화) | 문의처: 대학원 교학처 (내선 2382)</p>
+                <!-- Warning badge -->
+                <div class="bg-rose-50 border border-rose-200 rounded-lg p-2 text-rose-900 text-[11px] flex items-start gap-1.5">
+                  <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+                  <span><strong>반려 방지:</strong> 작년과 달리 외부 심사위원 신분증·통장사본 PDF와 보안서약서 누락 시 결재 반려됨</span>
+                </div>
+              </div>
+              <div class="flex sm:flex-col gap-1.5 shrink-0 w-full sm:w-auto">
+                <button onclick="loadToTransformer('thesis')" class="w-full sm:w-auto bg-hufs-navy hover:bg-hufs-dark text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center justify-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI 변환
+                </button>
+                <button onclick="switchTab('manual')" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs">
+                  매뉴얼
+                </button>
+              </div>
+            </div>
+
+            <!-- Task 2 -->
+            <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div class="space-y-1.5 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-amber-500 text-white font-extrabold text-[11px]">D-11</span>
+                  <span class="font-bold text-slate-900 text-sm">2026-2학기 성적우수·면학·연구조교(TA/RA) 장학금 사정</span>
+                  <span class="text-[10px] bg-teal-50 text-teal-800 font-bold px-1.5 py-0.5 rounded">공통</span>
+                </div>
+                <p class="text-slate-500 text-[11px]">마감일: 2026.11.16(월) | 문의처: 학사종합지원센터 장학팀 (내선 2135)</p>
+                <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 text-amber-900 text-[11px] flex items-start gap-1.5">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                  <span><strong>동점자 기준:</strong> 학부장님·신임조교 모두 부임 시 학과 내규(전공필수 이수학점 우선) 자동 적용</span>
+                </div>
+              </div>
+              <div class="flex sm:flex-col gap-1.5 shrink-0 w-full sm:w-auto">
+                <button onclick="loadToTransformer('scholarship')" class="w-full sm:w-auto bg-hufs-navy hover:bg-hufs-dark text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center justify-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI 변환
+                </button>
+                <button onclick="switchTab('manual')" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs">
+                  매뉴얼
+                </button>
+              </div>
+            </div>
+
+            <!-- Task 3 -->
+            <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div class="space-y-1.5 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-slate-600 text-white font-extrabold text-[11px]">D-18</span>
+                  <span class="font-bold text-slate-900 text-sm">11월분 시간강사료 지급 기안 및 기말고사 시험장 대관</span>
+                  <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded">학부</span>
+                </div>
+                <p class="text-slate-500 text-[11px]">마감일: 2026.11.23(월) | 문의처: 학사종합지원센터 수업지원팀 (내선 2074)</p>
+              </div>
+              <div class="flex sm:flex-col gap-1.5 shrink-0 w-full sm:w-auto">
+                <button onclick="loadToTransformer('lecturer')" class="w-full sm:w-auto bg-hufs-navy hover:bg-hufs-dark text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center justify-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI 변환
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Clean Contacts & Notices -->
+        <div class="space-y-4">
+          <!-- Quick Contacts -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+            <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5 mb-3">
+              <i data-lucide="phone" class="w-3.5 h-3.5 text-hufs-navy"></i> 학사종합지원센터 직통 내선 (자주 묻는 부서)
+            </h4>
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                <div>
+                  <span class="font-bold text-slate-800">장학팀</span>
+                  <p class="text-[10px] text-slate-400">장학 사정, TA/RA 추천</p>
+                </div>
+                <span class="font-mono font-bold text-hufs-navy">02-2173-2135</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                <div>
+                  <span class="font-bold text-slate-800">수업지원팀</span>
+                  <p class="text-[10px] text-slate-400">강사료, 수강신청, 휴보강</p>
+                </div>
+                <span class="font-mono font-bold text-hufs-navy">02-2173-2074</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                <div>
+                  <span class="font-bold text-slate-800">대학원 교학처</span>
+                  <p class="text-[10px] text-slate-400">논문심사, 종합/외국어시험</p>
+                </div>
+                <span class="font-mono font-bold text-hufs-navy">02-2173-2382</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick AI Notice Summary -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+            <h4 class="font-bold text-slate-900 text-xs flex items-center gap-1.5 mb-2.5">
+              <i data-lucide="radio" class="w-3.5 h-3.5 text-teal-600"></i> 외대 최신 공지 AI 요약
+            </h4>
+            <div class="p-2.5 rounded-lg bg-slate-50 text-[11px] space-y-1">
+              <span class="font-bold text-hufs-navy">[대학원] 학위논문 체제검증 안내</span>
+              <p class="text-slate-600">AI 요약: 11/10까지 심사 합격 명단 교학처 제출, 도서관 원문 제출 매뉴얼 단톡방 재공지 요망.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         TAB 2: STANDARD MANUAL & ONBOARDING
+         ======================================================== -->
+    <section id="tab-manual" class="hidden space-y-5">
+      <!-- Onboarding Guide Cards (3 Columns) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1.5">
+          <div class="flex items-center gap-1.5 text-hufs-navy font-bold text-xs">
+            <i data-lucide="monitor" class="w-4 h-4"></i> 1. 외대 필수 시스템
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            • <strong>종합정보시스템(WIS):</strong> 장학 사정 명단 다운로드 및 성적 조회<br/>
+            • <strong>전자결재:</strong> 조교 기안 → 행정실 검토 → 학부장 전결
+          </p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1.5">
+          <div class="flex items-center gap-1.5 text-hufs-navy font-bold text-xs">
+            <i data-lucide="book" class="w-4 h-4"></i> 2. 학과 과목 & 졸업 특성
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            • <strong>실습 과목:</strong> 학기 초 GPU 서버 계정 신청 안내 필수<br/>
+            • <strong>졸업 요건:</strong> 캡스톤디자인 결과보고서 + TOPCIT 증빙
+          </p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1.5">
+          <div class="flex items-center gap-1.5 text-hufs-navy font-bold text-xs">
+            <i data-lucide="users" class="w-4 h-4"></i> 3. 업무 분장
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            • <strong>대학원조교:</strong> 논문 심사, RA 장학, 대학원 세미나<br/>
+            • <strong>학부조교:</strong> 시간표 편성, 성적장학 사정, 강사료
+          </p>
+        </div>
+      </div>
+
+      <!-- 5W1H Standard Tasks -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-slate-900 text-sm">연간 표준 조교 업무 매뉴얼 (5하원칙 규격화)</h3>
+          <span class="text-xs text-slate-500">노션 빈 페이지 대신 정형화된 서식 제공</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="manualCardGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         TAB 3: AI DOCUMENT TRANSFORMER (CORE FEATURE)
+         ======================================================== -->
+    <section id="tab-transformer" class="hidden space-y-5">
+      <!-- Clean Top Banner -->
+      <div class="bg-gradient-to-r from-hufs-navy to-slate-900 text-white rounded-xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-teal-400 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded">HyperCLOVA X & Gemini</span>
+            <span class="text-xs text-teal-200">구버전 문서 자동 리뉴얼 & 개인정보 마스킹</span>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold mt-1">스마트 문서 아카이브 & AI 문서 자동 변환 스튜디오</h3>
+          <p class="text-xs text-slate-300 mt-0.5">전임자의 과거 문서를 선택하면 올해 학사일정 날짜 치환 + 바뀐 반려 방지 문구를 자동으로 삽입합니다.</p>
+        </div>
+        <div class="flex gap-1.5 shrink-0">
+          <button onclick="setDocMode('renew')" id="mBtn-renew" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-hufs-navy shadow-xs">
+            문서 리뉴얼
+          </button>
+          <button onclick="setDocMode('multi')" id="mBtn-multi" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 text-white hover:bg-white/20">
+            3종 공지 생성
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode 1: Document Renewal -->
+      <div id="panel-renew" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Left: Archive Select (4 cols) -->
+        <div class="lg:col-span-4 bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col justify-between space-y-3">
+          <div class="space-y-2.5">
+            <span class="text-xs font-bold text-slate-700 block">과거 문서 선택 (아카이브)</span>
+            
+            <div onclick="pickDoc('thesis')" id="dCard-thesis" class="p-3 rounded-lg border-2 border-hufs-navy bg-blue-50/40 cursor-pointer transition">
+              <span class="text-[10px] font-bold bg-hufs-navy text-white px-1.5 py-0.5 rounded">2025-2 전임자 승인본</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">[대학원] 학위논문 심사 안내 및 기안</p>
+              <p class="text-[10px] text-rose-600 font-medium mt-0.5">⚠️ 올해 외부심사위원 제출서류 변경됨</p>
+            </div>
+
+            <div onclick="pickDoc('scholarship')" id="dCard-scholarship" class="p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition">
+              <span class="text-[10px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">2025-2 전임자 승인본</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">[공통] 성적우수 및 조교 장학금 안내</p>
+              <p class="text-[10px] text-teal-600 font-medium mt-0.5">개인정보 포함 문서</p>
+            </div>
+
+            <div onclick="pickDoc('lecturer')" id="dCard-lecturer" class="p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition">
+              <span class="text-[10px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">2024-2 전전조교 보관본</span>
+              <p class="text-xs font-bold text-slate-900 mt-1">[학부] 시간강사료 지급 기안문</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">전전조교 복구본</p>
+            </div>
+          </div>
+
+          <button onclick="runAITransform()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition">
+            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> 2026년 기준 문서로 AI 자동 변환
+          </button>
+        </div>
+
+        <!-- Right: Before & After Diff (8 cols) -->
+        <div class="lg:col-span-8 bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+            <span class="font-bold text-slate-700">Before & After 비교</span>
+            <button onclick="copyOutput()" class="text-hufs-navy font-bold hover:underline flex items-center gap-1">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> 변환본 복사
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs flex-1">
+            <div class="flex flex-col">
+              <span class="text-[11px] font-semibold text-slate-400 mb-1">과거 원본 (전임자 작성)</span>
+              <textarea id="beforeBox" rows="13" class="w-full flex-1 p-3 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[11px] leading-relaxed text-slate-600 focus:outline-none"></textarea>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[11px] font-bold text-teal-700 mb-1">AI 자동 변환본 (2026 최신 기준)</span>
+              <div id="afterBox" class="w-full flex-1 p-3 rounded-lg bg-teal-50/30 border border-teal-300 text-[11px] leading-relaxed text-slate-800 overflow-y-auto max-h-[300px] custom-scroll whitespace-pre-wrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Multi 3-Format Generator -->
+      <div id="panel-multi" class="hidden bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
+        <div>
+          <h4 class="font-bold text-slate-900 text-sm">한 줄 메모 → [기안문 / 이메일 / 단톡방] 3종 동시 생성</h4>
+          <p class="text-xs text-slate-500 mt-0.5">핵심 내용만 한 줄로 입력하면 외대 행정 규격 3종으로 자동 작성됩니다.</p>
+        </div>
+        <div class="flex gap-2">
+          <input id="quickMemo" type="text" value="11월 13일 금요일 오후 4시까지 학위논문 심사료 영수증 및 심사위원 추천서 학과사무실 제출 안내" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-1 focus:ring-hufs-navy" />
+          <button onclick="makeThreeFormats()" class="bg-hufs-navy text-white font-bold px-4 py-2 rounded-lg text-xs shrink-0">생성</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs" id="threeBox">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         TAB 4: SHARED WORK LOG & HANDOVER WIZARD
+         ======================================================== -->
+    <section id="tab-worklog" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Work Log (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">대학원 · 학부 조교 공유 업무 일지</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">기록한 내용이 학기 말 인수인계서로 자동 통합됩니다.</p>
+            </div>
+            <div class="flex gap-1 text-xs">
+              <button onclick="filterLog('all')" class="px-2 py-0.5 rounded bg-hufs-navy text-white font-bold text-[11px]">전체</button>
+              <button onclick="filterLog('대학원')" class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px]">대학원</button>
+              <button onclick="filterLog('학부')" class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px]">학부</button>
+            </div>
+          </div>
+
+          <!-- Add Log -->
+          <div class="flex gap-2">
+            <select id="logRole" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-semibold">
+              <option value="대학원">대학원</option>
+              <option value="학부">학부</option>
+            </select>
+            <input id="logText" type="text" placeholder="처리한 업무나 바뀐 서식 주의사항을 기록하세요..." class="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5" />
+            <button onclick="addLog()" class="bg-hufs-navy text-white text-xs font-bold px-3 py-1.5 rounded-lg shrink-0">등록</button>
+          </div>
+
+          <!-- Log List -->
+          <div class="space-y-2 max-h-[360px] overflow-y-auto custom-scroll" id="logList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Handover Wizard (5 cols) -->
+        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 class="font-bold text-slate-900 text-sm">인수인계 마법사 (누락 방지)</h3>
+              <span class="text-xs font-extrabold text-hufs-navy" id="wizRate">85% 완료</span>
+            </div>
+            <p class="text-xs text-slate-500">전임 조교가 무엇을 넘겨야 할지 몰라도 체크리스트만 완성하면 인수인계서가 자동 생성됩니다.</p>
+
+            <div class="space-y-2 text-xs">
+              <label class="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" checked onchange="calcWiz()" class="wiz-chk mt-0.5 text-hufs-navy" />
+                <span>학과 공용 이메일, 복합기 PIN(4820), 세미나실 키 등록</span>
+              </label>
+              <label class="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" checked onchange="calcWiz()" class="wiz-chk mt-0.5 text-hufs-navy" />
+                <span>학사종합지원센터 변경 기준(외부심사위원 통장사본 등) 반영</span>
+              </label>
+              <label class="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" checked onchange="calcWiz()" class="wiz-chk mt-0.5 text-hufs-navy" />
+                <span>과년도 승인 완료 문서 38건 아카이브 보관 (개인정보 마스킹)</span>
+              </label>
+              <label class="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" onchange="calcWiz()" class="wiz-chk mt-0.5 text-hufs-navy" />
+                <span>차기 학기 미결 업무 요약 및 신임 학부장 보고서 생성</span>
+              </label>
+            </div>
+          </div>
+
+          <button onclick="openHandoverModal()" class="w-full bg-hufs-navy hover:bg-hufs-dark text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="file-text" class="w-4 h-4"></i> 자동 생성된 인수인계서 확인
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals -->
+  <!-- Handover Modal -->
+  <div id="handoverModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-xl w-full p-5 shadow-xl border border-slate-200 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h4 class="font-bold text-slate-900 text-sm">2026-2학기 표준 인수인계서 (자동 생성본)</h4>
+        <button onclick="closeHandoverModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-lg space-y-2 whitespace-pre-wrap max-h-80 overflow-y-auto custom-scroll" id="handoverText">
+1. 계정 및 기본 정보
+• 학과 공식 메일 / 복합기 PIN: 4820 / 세미나실 마스터키 보관함 2층
+
+2. 이번 학기 담당자 변경 반려 주의사항
+• 논문심사: 외부 심사위원 위촉 시 신분증·통장사본 PDF 첨부 필수 (교학처 2382)
+• 장학사정: TA/RA 장학금 신청 시 학부장 날인 복무협약서 첨부 (장학팀 2135)
+
+3. 연결된 과년도 승인 문서 패키지
+• 논문심사 기안문(2026 개정본), 성적장학 사정표, 강사료 지급 기안 등 총 38건 영구 보관됨.
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeHandoverModal()" class="px-3 py-1.5 rounded-lg bg-hufs-navy text-white text-xs font-bold">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedbackModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-xl border border-slate-200 space-y-3 text-xs">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h4 class="font-bold text-slate-900 text-sm">피드백 남기기</h4>
+        <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <p class="text-slate-500">데모 페이지에 대한 조교님·교수님의 의견을 자유롭게 적어주세요.</p>
+      <div class="space-y-2">
+        <input id="fbAuthor" type="text" placeholder="소속 (예: 일반대학원 조교, 학부장 등)" class="w-full px-3 py-1.5 border rounded-lg" />
+        <textarea id="fbBody" rows="3" placeholder="의견을 입력하세요..." class="w-full px-3 py-1.5 border rounded-lg"></textarea>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <button onclick="closeFeedbackModal()" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-semibold">닫기</button>
+        <button onclick="sendFeedback()" class="px-3 py-1.5 rounded-lg bg-hufs-navy text-white font-bold">등록</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-3.5 py-2.5 rounded-lg shadow-lg text-xs font-semibold hidden items-center gap-1.5 z-50">
+    <i data-lucide="check" class="w-3.5 h-3.5 text-teal-400"></i>
+    <span id="toastText">처리되었습니다.</span>
+  </div>
+
+  <!-- Script Logic -->
+  <script>
+    // Data Presets
+    const docData = {
+      thesis: {
+        before: `[2025학년도 제2학기 일반대학원 학위청구논문 심사 안내 및 기안]
+
+1. 관련: 대학원 교학처-2025-1042호
+2. 2025학년도 제2학기 석·박사 학위청구논문 심사 일정을 아래와 같이 안내합니다.
+
+- 제출 기한: 2025년 11월 12일(수) 17:00까지
+- 제출 장소: 학과사무실 (담당 조교: 김민수 010-9876-5432)
+- 심사 대상자: 박지훈(학번 202431029, 연락처 010-1234-5678)
+- 외부 심사위원 위촉 시: 추천서 1부 (계좌번호 기재)`,
+        after: `[<span class="diff-added">2026학년도 제2학기</span> 일반대학원 학위청구논문 심사 안내 및 기안]
+
+1. 관련: 대학원 교학처-<span class="diff-added">2026-1105호</span>
+2. <span class="diff-added">2026학년도 제2학기</span> 석·박사 학위청구논문 심사 일정을 아래와 같이 안내합니다.
+
+- 제출 기한: <span class="diff-added">2026년 11월 10일(화) 17:00까지 (외대 학사일정 자동매칭)</span>
+- 제출 장소: 학과사무실 (담당 조교: <span class="diff-added">한지수 조교, 교내 내선 연결</span>)
+- 심사 대상자: <span class="diff-masked">박*훈(학번 2024*****, 010-****-5678) [개인정보 마스킹]</span>
+- 외부 심사위원 위촉 시: 추천서 1부 + <span class="diff-added">[필수] 신분증·통장사본 PDF 및 보안서약서 첨부 (2026 담당자 변경 반려방지 기준)</span>`
+      },
+      scholarship: {
+        before: `[2025학년도 2학기 성적우수 및 조교 장학금 신청 안내]
+
+2025학년도 2학기 장학금 신청 일정을 안내합니다.
+- 신청 기간: 2025년 11월 3일(월) ~ 11월 14일(금)
+- 기존 장학생 예시: 이서연(학번 202310492)
+- 제출 서류: 장학금 신청서 1부`,
+        after: `[<span class="diff-added">2026학년도 2학기</span> 성적우수 및 조교 장학금 신청 안내]
+
+<span class="diff-added">2026학년도 2학기</span> 장학금 신청 일정을 안내합니다.
+- 신청 기간: <span class="diff-added">2026년 11월 5일(목) ~ 11월 16일(월) 17:00</span>
+- 기존 장학생 예시: <span class="diff-masked">이*연(학번 2023*****) [개인정보 마스킹]</span>
+- 제출 서류: 신청서 + <span class="diff-added">[필수] TA/RA 학부장 날인 복무협약서 첨부</span>
+- 동점자 처리: <span class="diff-added">전공필수 이수학점 우선 (학과 내규 자동 적용)</span>`
+      },
+      lecturer: {
+        before: `[2024학년도 2학기 11월분 시간강사료 지급 기안]
+
+1. 2024학년도 2학기 11월분 시간강사료를 지급하고자 합니다.
+- 대상: 김철수 강사(010-2222-3333) 외 5명
+- 지급 기준일: 2024년 11월 22일(금)`,
+        after: `[<span class="diff-added">2026학년도 2학기</span> 11월분 시간강사료 지급 기안]
+
+1. <span class="diff-added">2026학년도 2학기</span> 11월분 시간강사료를 지급하고자 합니다.
+- 대상: <span class="diff-masked">김*수 강사</span> 외 5명
+- 지급 기준일: <span class="diff-added">2026년 11월 23일(월)</span>
+- 사전 확인: <span class="diff-added">종합정보시스템 휴·보강 승인 완료 여부 확인필</span>`
+      }
+    };
+
+    let logs = [
+      { role: '대학원', text: '외부 논문심사위원 위촉 시 통장사본+신분증 PDF 필수 첨부 안내 (교학처 2382 확인)' },
+      { role: '학부', text: '학부장님·신임조교 동시 부임 대비 2026-2 장학사정 동점자 엑셀 수식 템플릿 세팅' },
+      { role: '공통', text: '타교 출신 신임 조교용 외대 종합정보시스템(WIS) 명단 추출 경로 캡처본 공유' }
+    ];
+
+    let currentDocKey = 'thesis';
+
+    function switchTab(tabId) {
+      ['dashboard', 'manual', 'transformer', 'worklog'].forEach(id => {
+        document.getElementById('tab-' + id).classList.add('hidden');
+        const b = document.getElementById('tabBtn-' + id);
+        b.className = 'tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm whitespace-nowrap transition';
+      });
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const active = document.getElementById('tabBtn-' + tabId);
+      active.className = 'tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-hufs-navy text-hufs-navy font-bold text-sm whitespace-nowrap transition';
+      lucide.createIcons();
+    }
+
+    function setRole(role) {
+      ['newTA', 'undergrad', 'prof'].forEach(r => {
+        document.getElementById('pBtn-' + r).className = 'px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition';
+      });
+      document.getElementById('pBtn-' + role).className = 'px-2.5 py-1 rounded-md font-bold bg-hufs-navy text-white shadow-2xs transition';
+      const text = document.getElementById('roleAlertText');
+      if (role === 'newTA') {
+        text.innerHTML = '<strong>타교·타과 출신 신임 조교 모드:</strong> 외대 행정 절차와 학과 전공 특성이 매뉴얼에 자동 반영되어 전임자나 학부생에게 일일이 묻지 않아도 됩니다.';
+      } else if (role === 'undergrad') {
+        text.innerHTML = '<strong>학부 행정조교 협업 모드:</strong> 대학원 조교와 일지 및 최신 서식 변경 사항을 실시간 공유하여 반려 및 재결재를 방지합니다.';
+      } else {
+        text.innerHTML = '<strong>신임 학부장 브리핑 모드:</strong> 학부장님과 조교가 동시에 새로 부임해도 연간 학과 업무 범위와 결재 필수 안건을 한눈에 파악합니다.';
+      }
+      showToast('역할 모드가 전환되었습니다.');
+    }
+
+    function pickDoc(key) {
+      currentDocKey = key;
+      ['thesis', 'scholarship', 'lecturer'].forEach(k => {
+        document.getElementById('dCard-' + k).className = (k === key) 
+          ? 'p-3 rounded-lg border-2 border-hufs-navy bg-blue-50/40 cursor-pointer transition'
+          : 'p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition';
+      });
+      document.getElementById('beforeBox').value = docData[key].before;
+      document.getElementById('afterBox').innerHTML = docData[key].after;
+    }
+
+    function runAITransform() {
+      const el = document.getElementById('afterBox');
+      el.innerHTML = '<span class="text-teal-700 animate-pulse font-bold">HyperCLOVA X & Gemini 엔진 분석 및 2026 최신 기준 변환 중...</span>';
+      setTimeout(() => {
+        el.innerHTML = docData[currentDocKey].after;
+        showToast('올해 학사일정 날짜 치환 및 반려 방지 문구가 적용되었습니다!');
+      }, 400);
+    }
+
+    function loadToTransformer(key) {
+      switchTab('transformer');
+      setDocMode('renew');
+      pickDoc(key);
+      runAITransform();
+    }
+
+    function setDocMode(mode) {
+      const pRenew = document.getElementById('panel-renew');
+      const pMulti = document.getElementById('panel-multi');
+      const bRenew = document.getElementById('mBtn-renew');
+      const bMulti = document.getElementById('mBtn-multi');
+      if (mode === 'renew') {
+        pRenew.classList.remove('hidden');
+        pMulti.classList.add('hidden');
+        bRenew.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-hufs-navy shadow-xs';
+        bMulti.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 text-white hover:bg-white/20';
+      } else {
+        pRenew.classList.add('hidden');
+        pMulti.classList.remove('hidden');
+        bMulti.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-hufs-navy shadow-xs';
+        bRenew.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 text-white hover:bg-white/20';
+        makeThreeFormats();
+      }
+    }
+
+    function makeThreeFormats() {
+      const memo = document.getElementById('quickMemo').value;
+      document.getElementById('threeBox').innerHTML = `
+        <div class="p-3.5 bg-slate-50 border rounded-lg space-y-1.5">
+          <span class="font-bold text-hufs-navy">① 교내 전자결재 기안문</span>
+          <div class="bg-white p-2.5 rounded border text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">제목: 2026-2학기 학위논문 심사 서류 보고 건
+
+1. 관련: 일반대학원 학위수여규정
+2. 위 호와 관련하여 아래와 같이 취합 보고합니다.
+- 내용: ${memo}
+- 첨부: 외부위원 신분증·통장사본 확인필. 끝.</div>
+        </div>
+        <div class="p-3.5 bg-slate-50 border rounded-lg space-y-1.5">
+          <span class="font-bold text-teal-800">② 학과 홈페이지·이메일 안내문</span>
+          <div class="bg-white p-2.5 rounded border text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">안녕하십니까, 학과사무실입니다.
+
+2026-2학기 학위논문 심사 서류 제출 안내드립니다.
+• 내용: ${memo}
+• 마감 시간을 엄수해 주시기 바랍니다.
+
+문의: 학과사무실 (02-2173-XXXX)</div>
+        </div>
+        <div class="p-3.5 bg-slate-50 border rounded-lg space-y-1.5">
+          <span class="font-bold text-amber-800">③ 단톡방 요약 공지</span>
+          <div class="bg-white p-2.5 rounded border text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">📢 [학과 공지] 원우 여러분 조교입니다!
+
+• ${memo}
+📌 외부 심사위원 계신 경우 통장+신분증 사본도 함께 제출해 주세요!</div>
+        </div>
+      `;
+    }
+
+    function copyOutput() {
+      const text = document.getElementById('afterBox').innerText;
+      navigator.clipboard?.writeText(text);
+      showToast('클립보드에 복사되었습니다.');
+    }
+
+    function renderLogs() {
+      document.getElementById('logList').innerHTML = logs.map(l => `
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs flex items-start gap-2">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${l.role === '대학원' ? 'bg-hufs-navy text-white' : 'bg-teal-700 text-white'}">#${l.role}</span>
+          <span class="text-slate-700">${l.text}</span>
+        </div>
+      `).join('');
+    }
+
+    function filterLog(role) {
+      if (role === 'all') {
+        renderLogs();
+      } else {
+        const filtered = logs.filter(l => l.role === role);
+        document.getElementById('logList').innerHTML = filtered.map(l => `
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs flex items-start gap-2">
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${l.role === '대학원' ? 'bg-hufs-navy text-white' : 'bg-teal-700 text-white'}">#${l.role}</span>
+            <span class="text-slate-700">${l.text}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function addLog() {
+      const role = document.getElementById('logRole').value;
+      const text = document.getElementById('logText').value.trim();
+      if (!text) return;
+      logs.unshift({ role, text });
+      document.getElementById('logText').value = '';
+      renderLogs();
+      showToast('업무 일지가 등록되었습니다.');
+    }
+
+    function calcWiz() {
+      const chks = document.querySelectorAll('.wiz-chk');
+      let c = 0; chks.forEach(k => { if (k.checked) c++; });
+      const pct = Math.round((c / chks.length) * 100);
+      document.getElementById('wizRate').textContent = pct + '% 완료';
+      document.getElementById('kpiRate').textContent = pct + '%';
+    }
+
+    function openHandoverModal() {
+      document.getElementById('handoverModal').classList.remove('hidden');
+      document.getElementById('handoverModal').classList.add('flex');
+    }
+    function closeHandoverModal() {
+      document.getElementById('handoverModal').classList.add('hidden');
+      document.getElementById('handoverModal').classList.remove('flex');
+    }
+
+    function openFeedbackModal() {
+      document.getElementById('feedbackModal').classList.remove('hidden');
+      document.getElementById('feedbackModal').classList.add('flex');
+    }
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.add('hidden');
+      document.getElementById('feedbackModal').classList.remove('flex');
+    }
+    function sendFeedback() {
+      closeFeedbackModal();
+      showToast('소중한 의견이 등록되었습니다. 감사합니다!');
+    }
+
+    function renderManualGrid() {
+      const cards = [
+        { title: '석·박사 학위청구논문 심사 보고', time: '11월 초 (11.10 마감)', dept: '대학원 교학처 (2382)', warn: '외부위원 신분증·통장사본 필수' },
+        { title: '성적우수·면학·조교(TA/RA) 장학금 사정', time: '5월 / 11월 중순 (11.16 마감)', dept: '학사지원센터 장학팀 (2135)', warn: 'TA 복무협약서 첨부필, 동점자 전공필수순' },
+        { title: '시간강사 위촉 및 월별 강사료 정산', time: '매월 20일 마감', dept: '학사지원센터 수업지원팀 (2074)', warn: '종합정보시스템 휴·보강 승인 확인' },
+        { title: '신입생 OT 및 종합·외국어시험', time: '3월 / 9월 초', dept: '학사종합지원센터 학적팀 (2114)', warn: '타과 입학생 기초과목 이수 안내' }
+      ];
+      document.getElementById('manualCardGrid').innerHTML = cards.map(c => `
+        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5 text-xs">
+          <span class="font-bold text-slate-900 block">${c.title}</span>
+          <p class="text-slate-500 text-[11px]">시기: ${c.time} | 부서: ${c.dept}</p>
+          <p class="text-rose-800 bg-rose-50 px-2 py-1 rounded text-[11px]">반려 주의: ${c.warn}</p>
+        </div>
+      `).join('');
+    }
+
+    function runGuidedDemo() {
+      showToast('🎬 1/3: 학사일정 마감 임박 업무 확인');
+      switchTab('dashboard');
+      setTimeout(() => {
+        showToast('🎬 2/3: 과거 문서 AI 자동 변환 실행');
+        loadToTransformer('thesis');
+      }, 2000);
+      setTimeout(() => {
+        showToast('🎬 3/3: 자동 생성된 표준 인수인계서 확인');
+        switchTab('worklog');
+        openHandoverModal();
+      }, 4200);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastText').textContent = msg;
+      t.classList.remove('hidden');
+      t.classList.add('flex');
+      setTimeout(() => {
+        t.classList.add('hidden');
+        t.classList.remove('flex');
+      }, 3000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      pickDoc('thesis');
+      renderLogs();
+      renderManualGrid();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
