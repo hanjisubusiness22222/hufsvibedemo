@@ -43,7 +43,7 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded text-[11px]">2026 AI 캠퍼스 경진대회</span>
-        <span class="text-slate-300 font-medium hidden sm:inline">한국외대 × 네이버클라우드 | 조교 행정 표준화 & AI 인수인계 포털</span>
+        <span class="text-slate-300 font-medium hidden sm:inline">한국외대 × 네이버클라우드 | 대학원·학부 조교 업무 표준화 & AI 인수인계 포털</span>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="runGuidedDemo()" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3 py-1 rounded-md text-xs flex items-center gap-1.5 transition shadow-xs">
@@ -74,18 +74,10 @@
           </div>
         </div>
 
-        <!-- Role / Persona Filter (Clean Tabs) -->
-        <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-          <span class="px-2 text-slate-400 font-medium hidden md:inline">보기:</span>
-          <button id="pBtn-newTA" onclick="setRole('newTA')" class="px-2.5 py-1 rounded-md font-bold bg-hufs-navy text-white shadow-2xs transition">
-            신임 조교 (타교·타과)
-          </button>
-          <button id="pBtn-undergrad" onclick="setRole('undergrad')" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
-            학부 행정조교
-          </button>
-          <button id="pBtn-prof" onclick="setRole('prof')" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
-            신임 학부장
-          </button>
+        <!-- Integrated Campus Indicator -->
+        <div class="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+          <i data-lucide="building-2" class="w-3.5 h-3.5 text-hufs-navy"></i>
+          <span>일반대학원 / 학부 학과사무실 통합 워크스페이스</span>
         </div>
       </div>
 
@@ -107,17 +99,6 @@
       </nav>
     </div>
   </header>
-
-  <!-- Role Notification Alert -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 w-full">
-    <div id="roleAlertBox" class="bg-blue-50/70 border border-blue-200/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-blue-950">
-      <div class="flex items-center gap-2">
-        <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
-        <span id="roleAlertText"><strong>타교·타과 출신 신임 조교 모드:</strong> 외대 행정 절차와 학과 전공 특성이 매뉴얼에 자동 반영되어 전임자나 학부생에게 일일이 묻지 않아도 됩니다.</span>
-      </div>
-      <button onclick="switchTab('manual')" class="text-blue-700 font-bold hover:underline shrink-0 ml-2">가이드 보기 →</button>
-    </div>
-  </div>
 
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full space-y-6">
@@ -615,22 +596,6 @@
       const active = document.getElementById('tabBtn-' + tabId);
       active.className = 'tab-btn flex items-center gap-1.5 px-3.5 py-2.5 border-b-2 border-hufs-navy text-hufs-navy font-bold text-sm whitespace-nowrap transition';
       lucide.createIcons();
-    }
-
-    function setRole(role) {
-      ['newTA', 'undergrad', 'prof'].forEach(r => {
-        document.getElementById('pBtn-' + r).className = 'px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition';
-      });
-      document.getElementById('pBtn-' + role).className = 'px-2.5 py-1 rounded-md font-bold bg-hufs-navy text-white shadow-2xs transition';
-      const text = document.getElementById('roleAlertText');
-      if (role === 'newTA') {
-        text.innerHTML = '<strong>타교·타과 출신 신임 조교 모드:</strong> 외대 행정 절차와 학과 전공 특성이 매뉴얼에 자동 반영되어 전임자나 학부생에게 일일이 묻지 않아도 됩니다.';
-      } else if (role === 'undergrad') {
-        text.innerHTML = '<strong>학부 행정조교 협업 모드:</strong> 대학원 조교와 일지 및 최신 서식 변경 사항을 실시간 공유하여 반려 및 재결재를 방지합니다.';
-      } else {
-        text.innerHTML = '<strong>신임 학부장 브리핑 모드:</strong> 학부장님과 조교가 동시에 새로 부임해도 연간 학과 업무 범위와 결재 필수 안건을 한눈에 파악합니다.';
-      }
-      showToast('역할 모드가 전환되었습니다.');
     }
 
     function pickDoc(key) {
